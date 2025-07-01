@@ -1,7 +1,7 @@
 import express, { Application, NextFunction, Request, Response } from "express";
 import globalErrorHandler from "./app/middlewares/global-error-handler";
 import notFoundHandler from "./app/middlewares/not-found-handler";
-// import { RootRoutes } from "./app/routes";
+import { RootRoutes } from "./app/routes";
 import applyMiddlewares from "./middleware";
 
 const app: Application = express();
@@ -34,7 +34,7 @@ app.get(
 
 // @ts-ignore
 // app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-// app.use("/api/v1", RootRoutes);
+app.use("/api/v1", RootRoutes);
 
 //global error handler
 app.use(globalErrorHandler);

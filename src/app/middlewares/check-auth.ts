@@ -4,9 +4,14 @@ import { Secret } from "jsonwebtoken";
 import config from "../../config";
 import ApiError from "../../errors/api-error";
 import { JwtHelpers } from "../../helpers/jwt-helpers";
+import { decodedUser } from "../modules/user/user.utils";
 
 /* auth validation */
-export const checkAuth = async (req: Request, res: Response, next: NextFunction) => {
+export const checkAuth = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { refresh_token, access_token } = req.cookies;
 		const accessToken =
@@ -22,7 +27,7 @@ export const checkAuth = async (req: Request, res: Response, next: NextFunction)
 				? config.jwt.jwt_refresh_secret
 				: config.jwt.jwt_secret;
 
-		verifiedUser = JwtHelpers.verifyToken(token, secret as Secret);
+		verifiedUser = decodedUser(token, secret as Secret);
 
 		if (!verifiedUser) {
 			throw new ApiError(httpStatus.UNAUTHORIZED, "You aren't authorized");
@@ -36,10 +41,9 @@ export const checkAuth = async (req: Request, res: Response, next: NextFunction)
 	}
 };
 
-
 /* auth-roles validation */
 export const authenticateRoles = (...roles: string[]) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+	return async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			// Ensure the user is authenticated first
 			if (!req.user) {
@@ -60,4 +64,3 @@ export const authenticateRoles = (...roles: string[]) => {
 		}
 	};
 };
-
