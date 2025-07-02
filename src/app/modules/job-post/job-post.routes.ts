@@ -8,7 +8,12 @@ import { JobPostValidation } from "./job-post.validation";
 const router: Router = express.Router();
 
 router
-	.get("/", JobPostController.getAllJobsController)
+	.get(
+		"/",
+		checkAuth,
+		authenticateRoles(USER_ROLE.EMPLOYER, USER_ROLE.CANDIDATE, USER_ROLE.ADMIN),
+		JobPostController.getAllJobsController
+	)
 	.get("/:id", JobPostController.getSingleJobController)
 	.post(
 		"/",

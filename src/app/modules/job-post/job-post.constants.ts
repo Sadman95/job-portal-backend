@@ -11,4 +11,5 @@ export const jobPostFilterableFields = [
 	"jobType",
 	"salaryRange",
 	"skills",
+	"createdBy",
 ];

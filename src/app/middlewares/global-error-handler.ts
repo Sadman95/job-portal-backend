@@ -10,6 +10,8 @@ import handleValidationError from "../../errors/handle-validation-error";
 import handleZodError from "../../errors/handle-zod-error";
 import { IGenericErrorMessage } from "../../interfaces/error.interface";
 import { logger } from "../../shared/logger";
+import path from "path";
+import fs from "fs";
 
 const globalErrorHandler: ErrorRequestHandler = (
 	error,
@@ -20,6 +22,48 @@ const globalErrorHandler: ErrorRequestHandler = (
 	if (!error) {
 		next();
 	}
+
+	//file handle
+	if (req.file) {
+		const filePath = path.join(
+			__dirname,
+			"..",
+			"..",
+			"public",
+			req.file.fieldname,
+			req.file.filename
+		);
+		fs.unlink(filePath, (unlinkErr) => {
+			if (unlinkErr) {
+				logger.log("Error while deleting the file:", unlinkErr);
+			}
+		});
+	}
+
+	if (req.files) {
+		const files = {
+			data: req.files,
+			[Symbol.iterator]: function () {
+				let index = 0;
+				const data = this.data;
+				return {
+					next: function () {
+						if (Array.isArray(data)) {
+							return index < data.length
+								? { value: data[index++], done: false }
+								: { done: true };
+						}
+						return { done: true };
+					},
+				};
+			},
+		};
+
+		for (const file of files) {
+			file && fs.unlinkSync(file.path);
+		}
+	}
+	//file handle
 
 	config.env === "development"
 		? console.log(`🐱‍🏍 globalErrorHandler ~~`, { error })

@@ -1,6 +1,7 @@
-import { Socket } from "socket.io";
 import { Server } from "http";
+import { Socket } from "socket.io";
 
+export const connectedUsers = new Map<string, string>(); // Map<userId, socketId>
 
 /**
  * @summary Socket starter
@@ -14,7 +15,6 @@ const socket = (server: Server) => {
 		},
 	});
 
-
 	io.on("connection", (socket: Socket) => {
 		console.log("User connected");
 
@@ -22,9 +22,17 @@ const socket = (server: Server) => {
 			console.log("User disconnected: " + socket.id);
 		});
 
-		// socket events here....
-		
+		// Listen for user identification
+		socket.on("user-login", (userId: string) => {
+			connectedUsers.set(userId, socket.id);
+			console.log(`User ${userId} associated with socket ${socket.id}`);
+		});
 	});
+
+	return {
+		io,
+		connectedUsers,
+	};
 };
 
 export default socket;

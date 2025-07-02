@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { JwtPayload } from "jsonwebtoken";
 import { PAGINATION } from "../../../constants/pagination";
-import { ResponseStatus } from "../../../enums";
+import { ResponseStatus, USER_ROLE } from "../../../enums";
 import ApiError from "../../../errors/api-error";
 import { queryHelper } from "../../../helpers/query-helper";
 import { totalCount } from "../../../helpers/total-count";
@@ -49,12 +49,25 @@ const createJobController = catchAsync(async (req: Request, res: Response) => {
 ===========================
 */
 const getAllJobsController = catchAsync(async (req: Request, res: Response) => {
-	const filterableOptions = pick(req.query, jobPostFilterableFields);
+	const filterableOptions = pick(req.query, jobPostFilterableFields) as Record<
+		string,
+		unknown
+	>;
 	const paginationOptions: IPaginationOptions = pick(req.query, PAGINATION);
 
 	const { url, query, path } = req;
 
 	const total = await totalCount("jobs");
+
+	if (
+		req.user!.roles.length == 1 &&
+		req.user!.roles[0] === USER_ROLE.EMPLOYER
+	) {
+		const employer = await UserService.getSingleUserService({
+			email: req.user?.email,
+		});
+		filterableOptions.createdBy = employer._id;
+	}
 
 	const options = {
 		filterableOptions,

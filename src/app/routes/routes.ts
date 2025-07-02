@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AuthRoutes } from "../modules/auth/auth.routes";
 import { JobPostRoutes } from "../modules/job-post/job-post.routes";
+import { JobApplicationRoutes } from "../modules/job-application/job-application.route";
 
 export type IRoute = {
 	path: string;
@@ -15,5 +16,9 @@ export const routes: IRoute[] = [
 	{
 		path: "/jobs",
 		router: JobPostRoutes,
+	},
+	{
+		path: "/job-applications",
+		router: JobApplicationRoutes,
 	},
 ];

@@ -69,7 +69,6 @@ const getAllJobsService = async (
 		},
 		{
 			$project: {
-				createdBy: 0,
 				__v: 0,
 			},
 		},
