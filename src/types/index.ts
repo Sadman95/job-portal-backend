@@ -1,27 +1,25 @@
-// -------------- query helper types -------------- //
-type SortOrder = "asc" | "desc";
+import { IMeta } from "../interfaces/meta.interface";
+import { IPaginationOptions } from "../interfaces/pagination.interface";
 
-export interface PaginationOptions {
-	page?: number; // defaults to 1
-	limit?: number; // defaults to 10
-	sortBy?: string; // defaults to 'createdAt'
-	sortOrder?: SortOrder; // defaults to 'desc'
-}
-
-export interface Result extends Partial<PaginationOptions> {
+export interface Result extends Partial<IPaginationOptions> {
 	filterConditions: Record<string, unknown>;
 	sortConditions: Record<string, string>;
 }
 
 export interface Options {
-	paginationOptions: PaginationOptions;
+	paginationOptions: IPaginationOptions;
 	url: string;
 	query: Record<string, unknown>;
-    path: string;
-    total: number;
+	path: string;
+	total: number;
 }
 
-
+export interface QueryOptions {
+	filterConditions: Record<string, unknown>;
+	sortConditions: Record<string, 1 | -1>;
+	skip: number;
+	limit: number;
+}
 /* 
 paginationOptions,
 		  url,

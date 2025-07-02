@@ -15,3 +15,15 @@ export enum ResponseStatus {
 	SUCCESS = "success",
 	FAILED = "failed",
 }
+
+export enum JOB_TYPE {
+	FULL_TIME = "full-time",
+	PART_TIME = "part-time",
+	CONTRACT = "contract",
+	INTERNSHIP = "internship",
+}
+
+export enum JOB_STATUS {
+	ACTIVE = "Active",
+	INACTIVE = "Inactive",
+}

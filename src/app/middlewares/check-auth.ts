@@ -3,7 +3,6 @@ import httpStatus from "http-status";
 import { Secret } from "jsonwebtoken";
 import config from "../../config";
 import ApiError from "../../errors/api-error";
-import { JwtHelpers } from "../../helpers/jwt-helpers";
 import { decodedUser } from "../modules/user/user.utils";
 
 /* auth validation */
@@ -53,7 +52,11 @@ export const authenticateRoles = (...roles: string[]) => {
 			// Check if the user role matches one of the allowed roles
 			const isValidRole = roles
 				.map((role) => role.toLowerCase())
-				.some((r) => r == req.user!.roles.includes(r));
+				.some((r) =>
+					req
+						.user!.roles.map((userRole: string) => userRole.toLowerCase())
+						.includes(r)
+				);
 			if (!isValidRole) {
 				throw new ApiError(httpStatus.FORBIDDEN, "Access denied!");
 			}

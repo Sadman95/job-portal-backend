@@ -29,9 +29,9 @@ const getSingleUserController = catchAsync(
 			throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized access");
 		}
 
-		const result = await UserService.getSingleUserService(
-			new mongoose.Schema.ObjectId(id)
-		);
+		const result = await UserService.getSingleUserService({
+			_id: new mongoose.Types.ObjectId(id),
+		});
 
 		result &&
 			sendResponse<IUserSchema>(res, {

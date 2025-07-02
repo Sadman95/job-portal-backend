@@ -1,68 +1,110 @@
-import { Options } from "../types";
+import { IPaginationOptions } from "../interfaces/pagination.interface";
 import { generateQueryString } from "../utils/generate-query-string";
 import { calculatePagination } from "./pagination-helpers";
 
-export const queryHelper = (options: Options) => {
+// Pagination Input Options
+
+// Result Meta Type
+export interface PaginationMeta {
+	current: number;
+	totalPages: number;
+	prev?: number;
+	next?: number;
+}
+
+// Main Return Type
+export interface QueryHelperResult {
+	filterConditions: Record<string, unknown>;
+	sortConditions: Record<string, 1 | -1>;
+	pagination: PaginationMeta;
+	links: Record<string, string>;
+	skip: number;
+	limit: number;
+}
+
+// Input Options for the Helper
+export interface QueryHelperOptions {
+	filterableOptions: Record<string, any>;
+	paginationOptions: IPaginationOptions;
+	searchableFields: string[];
+	url: string;
+	query: Record<string, any>;
+	path: string;
+	total: number;
+}
+
+export const queryHelper = (options: QueryHelperOptions): QueryHelperResult => {
 	const {
+		filterableOptions,
 		paginationOptions,
+		searchableFields,
 		url,
 		query,
 		path,
 		total,
 	} = options;
+
+	let { searchTerm, ...filtersData } = filterableOptions;
+
 	const { page, limit, skip, sortBy, sortOrder } =
 		calculatePagination(paginationOptions);
 
+	const andConditions: Record<string, unknown>[] = [];
+	const sortConditions: Record<string, 1 | -1> = {};
 
-	const sortConditions: Record<string, unknown> = {};
+	if (searchTerm) {
+		andConditions.push({
+			$or: searchableFields.map((field) => ({
+				[field]: {
+					$regex: searchTerm,
+					$options: "i",
+				},
+			})),
+		});
+	}
 
+	if (Object.keys(filtersData).length) {
+		Object.entries(filtersData).forEach(([field, value]) => {
+			andConditions.push({ [field]: value });
+		});
+	}
 
 	if (sortBy && sortOrder) {
-		sortConditions[sortBy] = sortOrder;
+		sortConditions[sortBy] = sortOrder == "asc" ? 1 : -1;
 	}
 
+	const filterConditions =
+		andConditions.length > 0 ? { $and: andConditions } : {};
 
-	/*pagination & links*/
 	const totalPages = Math.ceil(total / limit);
-
-	let pagination = {
-		current: Number(page),
+	const pagination: PaginationMeta = {
+		current: page,
 		totalPages,
-		prev: 0,
-		next: 0,
 	};
 
-	if (Number(page) - 1 > 0) {
-		pagination = {
-			...pagination,
-			prev: Number(page) - 1,
-		};
-	}
-	if (Number(page) < totalPages) pagination.next = Number(page) + 1;
+	if (page - 1 > 0) pagination.prev = page - 1;
+	if (page < totalPages) pagination.next = page + 1;
 
-	const links = {
+	const links: Record<string, string> = {
 		self: url,
-		prev: "",
-		next: "",
 	};
 
 	if (pagination.prev) {
-		const queryString = generateQueryString({
+		links.prev = `${path}?${generateQueryString({
 			...query,
 			page: pagination.prev,
-		});
-		links.prev = `${path}?${queryString}`;
+		})}`;
 	}
 
 	if (pagination.next) {
-		const queryString = generateQueryString({
+		links.next = `${path}?${generateQueryString({
 			...query,
 			page: pagination.next,
-		});
-		links.next = `${path}?${queryString}`;
+		})}`;
 	}
 
 	return {
+		filterConditions,
 		sortConditions,
 		pagination,
 		links,
