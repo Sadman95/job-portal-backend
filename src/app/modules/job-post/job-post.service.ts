@@ -1,7 +1,6 @@
 import httpStatus from "http-status";
 import { Types } from "mongoose";
 import ApiError from "../../../errors/api-error";
-import { IGenericResponse } from "../../../interfaces/generic-response.interface";
 import { QueryOptions } from "../../../types";
 import { JobPost } from "./job-post,model";
 import { IJobPostSchema } from "./job-post.interface";
@@ -31,7 +30,7 @@ const createJobService = async (
 */
 const getAllJobsService = async (
 	options: QueryOptions
-): Promise<IGenericResponse<IJobPostSchema[]> | null> => {
+): Promise<IJobPostSchema[] | null> => {
 	const { filterConditions, sortConditions, skip, limit } = options;
 
 	const results = await JobPost.aggregate([
@@ -74,9 +73,7 @@ const getAllJobsService = async (
 		},
 	]);
 
-	return {
-		data: results,
-	};
+	return results;
 };
 
 /*

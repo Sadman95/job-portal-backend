@@ -1,10 +1,10 @@
 export type IMeta = {
-	pagination: {
-		current: number;
-		totalPages: number;
-		prev: number | null;
-		next: number | null;
+	pagination?: {
+		current?: number;
+		totalPages?: number;
+		prev?: number | null | undefined;
+		next?: number | null | undefined;
 	};
-	limit?: number;
+	limit: number;
 	total?: number;
 };

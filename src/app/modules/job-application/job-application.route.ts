@@ -14,13 +14,19 @@ const router = express.Router();
  * @access  Candidate (Authenticated)
  */
 router
-	.route("/:jobId")
 	.post(
+		"/:jobId",
 		checkAuth,
 		upload.single("resume"),
 		authenticateRoles(USER_ROLE.CANDIDATE),
 		validateRequest(JobApplicationValidation.applyToJobZodSchema),
 		JobApplicationController.applyJobApplicationController
+	)
+	.get(
+		"/",
+		checkAuth,
+		authenticateRoles(USER_ROLE.ADMIN),
+		JobApplicationController.getAllJobApplicationsController
 	);
 
 export const JobApplicationRoutes = router;

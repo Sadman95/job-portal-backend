@@ -11,13 +11,13 @@ import socket from "../../../lib/socket";
 import catchAsync from "../../../shared/catch-async";
 import pick from "../../../shared/pick";
 import sendResponse from "../../../shared/send-response";
-import {
-	jobPostFilterableFields,
-	jobPostSearchableFields,
-} from "../job-post/job-post.constants";
-import { IJobPostSchema } from "../job-post/job-post.interface";
 import { JobService } from "../job-post/job-post.service";
 import { UserService } from "../user/user.service";
+import {
+	jobApplicationFilterableFields,
+	jobApplicationSearchableFields,
+} from "./job-application.constants";
+import { IJobApplication } from "./job-application.interface";
 import { JobApplicationService } from "./job-application.service";
 
 /*
@@ -51,7 +51,7 @@ const applyJobApplicationController = catchAsync(
 		const employerSocketId = socket(httpServer).connectedUsers.get(employerId);
 
 		if (employerSocketId) {
-			socket(httpServer).io.to(employerSocketId).emit("job-application", {
+			socket(httpServer).io.to(employerSocketId).emit("job:applied", {
 				message: "New application received",
 				jobTitle: existJob.title,
 				candidateId: candidate._id,
@@ -76,17 +76,17 @@ const applyJobApplicationController = catchAsync(
 */
 const getAllJobApplicationsController = catchAsync(
 	async (req: Request, res: Response) => {
-		const filterableOptions = pick(req.query, jobPostFilterableFields);
+		const filterableOptions = pick(req.query, jobApplicationFilterableFields);
 		const paginationOptions: IPaginationOptions = pick(req.query, PAGINATION);
 
 		const { url, query, path } = req;
 
-		const total = await totalCount("jobs");
+		const total = await totalCount("job-applications");
 
 		const options = {
 			filterableOptions,
 			paginationOptions,
-			searchableFields: jobPostSearchableFields,
+			searchableFields: jobApplicationSearchableFields,
 			url,
 			query,
 			path,
@@ -95,18 +95,32 @@ const getAllJobApplicationsController = catchAsync(
 
 		const { pagination, links, ...restOptions } = queryHelper(options);
 
-		const result = await JobService.getAllJobsService(restOptions);
+		const result = await JobApplicationService.getJobApplicationsService({
+			...restOptions,
+			rootSearchFields: ["candidateId"],
+			jobPostSearchFields: [
+				"jobPost._id",
+				"jobPost.title",
+				"jobPost.description",
+				"jobPost.skills",
+			],
+		});
 
 		if (!result) {
-			throw new ApiError(httpStatus.NOT_FOUND, "No jobs found");
+			throw new ApiError(httpStatus.NOT_FOUND, "No job application found");
 		}
 
-		sendResponse<IJobPostSchema[]>(res, {
+		sendResponse<IJobApplication[]>(res, {
 			statusCode: httpStatus.OK,
 			success: true,
 			status: ResponseStatus.SUCCESS,
-			meta: result.meta,
-			data: result.data,
+			meta: {
+				pagination,
+				limit: restOptions.limit,
+				total,
+			},
+			links,
+			data: result,
 		});
 	}
 );

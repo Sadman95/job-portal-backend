@@ -15,6 +15,10 @@ const socket = (server: Server) => {
 		},
 	});
 
+	// Namespace for notifications
+	// Uncomment if you want to use a separate namespace for notifications
+	// const notificationsNamespace = io.of("/notifications");
+
 	io.on("connection", (socket: Socket) => {
 		console.log("User connected");
 

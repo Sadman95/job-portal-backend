@@ -74,12 +74,12 @@ This system is the backend of a full-stack Job Portal application. It will expos
 
 ### 3.2 Role-Based Access Control (RBAC)
 
-| Route                     | Access           |
-| ------------------------- | ---------------- |
-| `/api/v1/jobs/create`     | Employer only    |
-| `/api/v1/jobs/:id/update` | Employer (Owner) |
-| `/api/v1/applications`    | Candidate only   |
-| `/api/v1/admin/jobs`      | Admin only       |
+| Route                           | Access                 |
+| ------------------------------- | ---------------------- |
+| POST `/api/v1/jobs`             | Employer only          |
+| PATCH `/api/v1/jobs/:id`        | Employer (Owner)       |
+| POST `/api/v1/job-applications` | Candidate only         |
+| GET `/api/v1/jobs`              | All(Employer specific) |
 
 ---
 
@@ -175,7 +175,6 @@ This system is the backend of a full-stack Job Portal application. It will expos
 ### 4.3 Real-time API
 
 - **Socket.io**
-- Namespace: `/notifications`
 - Event: `job:applied` → sent to employer room
 
 ---
@@ -188,7 +187,7 @@ This system is the backend of a full-stack Job Portal application. It will expos
 | Performance     | Support for pagination & indexed fields           |
 | Scalability     | Dockerized; can scale via container orchestration |
 | Reliability     | Use of logging (Winston) and error handling       |
-| Documentation   | Swagger or Postman-based API docs                 |
+| Documentation   | Postman-based API docs                            |
 | Maintainability | Modular folder structure using clean architecture |
 | Portability     | Environment-specific config using `.env`          |
 | Dev Experience  | Hot-reload with `ts-node-dev`, proper linting     |
@@ -203,7 +202,7 @@ This system is the backend of a full-stack Job Portal application. It will expos
 - MongoDB local
 - Docker + Docker Compose
 - TypeScript
-- Tools: Postman, VSCode, Swagger UI
+- Tools: Postman, VSCode
 
 ### 6.2 Production
 
@@ -242,8 +241,8 @@ Role {
 
 ```ts
 User {
-  id: string;            // e.g., "u_00001"
-  role: string;          // FK to Role.id
+  id: string;
+  role: string;
   email: string;
   password: string;
   createdAt: Date;
@@ -255,7 +254,7 @@ User {
 
 ```ts
 Job {
-  id: string;            // e.g., "j_00001"
+  id: string;
   title: string;
   description: string;
   companyName: string;
@@ -277,7 +276,7 @@ Job {
 
 ```ts
 JobApplication {
-  id: string;            // e.g., "app_00001"
+  id: string;
   jobId: string;         // FK to Job.id
   candidateId: string;   // FK to User.id
   coverLetter?: string;
@@ -290,7 +289,7 @@ JobApplication {
 
 ```ts
 Notification {
-  id: string;            // e.g., "n_00001"
+  id: string;
   recipientId: string;   // FK to User.id (employer)
   jobId: string;         // FK to Job.id
   message: string;
@@ -428,7 +427,7 @@ Notification {
 
 - **Method:** POST
 - **Access:** Private (candidate)
-- **Path:** `/applications`
+- **Path:** `/job-applications`
 - **Request Body:**
   - `jobId*`
   - `coverLetter`
@@ -443,7 +442,7 @@ Notification {
 
 - **Method:** GET
 - **Access:** Private (candidate)
-- **Path:** `/applications/my`
+- **Path:** `/job-applications/my`
 - **Responses:**
   - **200 | 404 | 500**
 
@@ -453,7 +452,7 @@ Notification {
 
 - **Method:** GET
 - **Access:** Private (employer)
-- **Path:** `/jobs/{id}/applications`
+- **Path:** `/jobs/{id}/job-applications`
 - **Responses:**
   - **200**
   - **404 | 500**
@@ -464,13 +463,13 @@ Notification {
 
 > Real-time notifications are pushed via Socket.io to employers when a candidate applies to a job.
 
-**Event: `job_application_notification`**  
+**Event: `job:applied`**  
 **Payload:**
 
 ```json
 {
-	"recipientId": "u_00001",
-	"jobId": "j_00001",
+	"recipientId": "_uniqueId",
+	"jobId": "_uniqueId",
 	"message": "New application for Frontend Developer"
 }
 ```

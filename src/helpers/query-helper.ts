@@ -3,8 +3,6 @@ import { generateQueryString } from "../utils/generate-query-string";
 import { calculatePagination } from "./pagination-helpers";
 
 // Pagination Input Options
-
-// Result Meta Type
 export interface PaginationMeta {
 	current: number;
 	totalPages: number;

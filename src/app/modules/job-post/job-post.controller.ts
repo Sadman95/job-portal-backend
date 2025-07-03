@@ -57,7 +57,7 @@ const getAllJobsController = catchAsync(async (req: Request, res: Response) => {
 
 	const { url, query, path } = req;
 
-	const total = await totalCount("jobs");
+	const total = await totalCount("job-posts");
 
 	if (
 		req.user!.roles.length == 1 &&
@@ -91,8 +91,13 @@ const getAllJobsController = catchAsync(async (req: Request, res: Response) => {
 		statusCode: httpStatus.OK,
 		success: true,
 		status: ResponseStatus.SUCCESS,
-		meta: result.meta,
-		data: result.data,
+		meta: {
+			pagination,
+			limit: restOptions.limit,
+			total,
+		},
+		links,
+		data: result,
 	});
 });
 

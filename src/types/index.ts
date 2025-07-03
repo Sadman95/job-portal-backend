@@ -19,6 +19,8 @@ export interface QueryOptions {
 	sortConditions: Record<string, 1 | -1>;
 	skip: number;
 	limit: number;
+	pagination?: IPaginationOptions;
+	total?: number;
 }
 /* 
 paginationOptions,
