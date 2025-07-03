@@ -436,26 +436,13 @@ Notification {
   - **201**
   - **400 | 404 | 500**
 
----
-
-### 📄 View Candidate Applications
+### 📄 View Job Applications
 
 - **Method:** GET
-- **Access:** Private (candidate)
-- **Path:** `/job-applications/my`
+- **Access:** Private (admin)
+- **Path:** `/job-applications`
 - **Responses:**
   - **200 | 404 | 500**
-
----
-
-### 📂 View Applications for a Job
-
-- **Method:** GET
-- **Access:** Private (employer)
-- **Path:** `/jobs/{id}/job-applications`
-- **Responses:**
-  - **200**
-  - **404 | 500**
 
 ---
 
