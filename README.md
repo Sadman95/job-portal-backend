@@ -102,6 +102,22 @@ http://localhost:5000/api/v1/
 
 ---
 
+## Sample credentials for testing
+
+- Admin
+  - email: admin@admin.com
+  - password: admin
+- Employer
+  - email: emp1@employer.com
+  - password: emp1
+- Candidate
+  - email: can1@candidate.com
+  - password: can1
+
+## Deployed link
+
+[Deployed on AWS](http://56.228.2.135:80)
+
 ## License
 
 MIT
