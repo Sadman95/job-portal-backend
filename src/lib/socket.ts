@@ -1,7 +1,12 @@
+import httpStatus from "http-status";
 import { Server } from "http";
 import { Socket } from "socket.io";
 import { JobService } from "../app/modules/job-post/job-post.service";
 import ApiError from "../errors/api-error";
+import { NextFunction, Request, Response } from "express";
+import { decodedUser } from "../app/modules/user/user.utils";
+import config from "../config";
+import { UserService } from "../app/modules/user/user.service";
 
 export const connectedUsers = new Map<string, string>(); // Map<userId, socketId>
 
@@ -20,6 +25,23 @@ const socket = (server: Server) => {
 	// Namespace for notifications
 	// Uncomment if you want to use a separate namespace for notifications
 	// const notificationsNamespace = io.of("/notifications");
+
+	io.engine.use(async (req: Request, res: Response, next: NextFunction) => {
+		const token = req.headers.authorization?.split(" ")[1];
+		if (!token) {
+			return next(
+				new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized access!")
+			);
+		}
+		const decoded = decodedUser(token, config.jwt.jwt_secret as string);
+		const existUser = await UserService.getSingleUserService({
+			email: decoded.email,
+		});
+		if (!existUser) {
+			return next(new ApiError(httpStatus.NOT_FOUND, "User not found!"));
+		}
+		next();
+	});
 
 	io.on("connection", (socket: Socket) => {
 		console.log("User connected");
