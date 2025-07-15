@@ -47,18 +47,6 @@ const applyJobApplicationController = catchAsync(
 			jobId: existJob._id,
 		});
 
-		const employerId = existJob.createdBy?.toString();
-		const employerSocketId = socket(httpServer).connectedUsers.get(employerId);
-
-		if (employerSocketId) {
-			socket(httpServer).io.to(employerSocketId).emit("job:applied", {
-				message: "New application received",
-				jobTitle: existJob.title,
-				candidateId: candidate._id,
-				jobId: existJob._id,
-			});
-		}
-
 		sendResponse(res, {
 			statusCode: httpStatus.CREATED,
 			success: true,
