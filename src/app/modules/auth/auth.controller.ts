@@ -12,6 +12,7 @@ import {
 	IRegUser,
 } from "./auth.interface";
 import { AuthService } from "./auth.service";
+import { UserService } from "../user/user.service";
 
 /*
  * Controller
@@ -155,9 +156,132 @@ const logoutController = catchAsync(async (req: Request, res: Response) => {
 	}
 });
 
+/*
+========================
+- PATCH
+- /auth/enable-2fa
+========================
+*/
+const enable2faController = catchAsync(async (req: Request, res: Response) => {
+	const user = req.user as JwtPayload;
+	if (!user) throw new ApiError(httpStatus.BAD_REQUEST, "Invalid request");
+
+	const result = await AuthService.enable2faService({ email: user.email });
+	if (!result) {
+		throw new ApiError(
+			httpStatus.INTERNAL_SERVER_ERROR,
+			"Failed to enable 2FA"
+		);
+	}
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		status: ResponseStatus.SUCCESS,
+		message: "OTP generated!",
+		data: {
+			auth_url: result.auth_url,
+			base32_secret: result.base32_secret,
+		},
+	});
+});
+
+/*
+========================
+- POST
+- /auth/verify-2fa
+========================
+*/
+const verify2faController = catchAsync(async (req: Request, res: Response) => {
+	const { email, token } = req.body;
+
+	const user = await UserService.getSingleUserService({ email });
+	if (!user) throw new ApiError(httpStatus.BAD_REQUEST, "Invalid request");
+
+	const isVerified = await AuthService.verify2faService({
+		email,
+		token,
+	});
+
+	if (!isVerified) {
+		throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid OTP");
+	}
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		status: ResponseStatus.SUCCESS,
+		message: "2FA verified successfully",
+	});
+});
+
+/*
+========================
+- POST
+- /auth/validate-2fa
+========================
+*/
+const validate2faController = catchAsync(
+	async (req: Request, res: Response) => {
+		const { token } = req.body;
+
+		const user = await UserService.getSingleUserService({
+			email: req.user?.email,
+		});
+		if (!user) throw new ApiError(httpStatus.BAD_REQUEST, "Invalid request");
+
+		const isVerified = await AuthService.verify2faService({
+			email: user.email,
+			token,
+		});
+
+		if (!isVerified) {
+			throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid OTP");
+		}
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			status: ResponseStatus.SUCCESS,
+			message: "2FA validated successfully",
+		});
+	}
+);
+
+/*
+========================
+- PATCH
+- /auth/disable-2fa
+========================
+*/
+const disable2faController = catchAsync(async (req: Request, res: Response) => {
+	const user = req.user as JwtPayload;
+	if (!user) throw new ApiError(httpStatus.BAD_REQUEST, "Invalid request");
+
+	const result = await AuthService.disable2faService({ email: user.email });
+
+	if (!result) {
+		throw new ApiError(
+			httpStatus.INTERNAL_SERVER_ERROR,
+			"Failed to disable 2FA"
+		);
+	}
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		status: ResponseStatus.SUCCESS,
+		message: "2FA disabled successfully",
+	});
+});
+
 export const AuthController = {
 	signUpController,
 	loginController,
 	refreshTokenController,
 	logoutController,
+	enable2faController,
+	verify2faController,
+	validate2faController,
+	disable2faController,
 };

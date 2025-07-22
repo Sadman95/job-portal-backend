@@ -1,0 +1,502 @@
+{
+	"info": {
+		"_postman_id": "c7207444-51f1-4d34-880c-87d08769b203",
+		"name": "Job Portal Backend",
+		"description": "# Documentation\n\n# 🧾 System Requirements Specification (SRS)\n\n## 1\\. Introduction\n\n### 1.1 Purpose\n\nThis document defines the functional and non-functional requirements for a **Job Portal Backend System** that enables **users to register**, **employers to post jobs**, **candidates to apply for jobs**, and **admins to monitor the system**, with **real-time notifications** powered by **Socket.io**.\n\n### 1.2 Intended Audience\n\n- Backend Developers\n    \n- DevOps Engineers\n    \n- QA Testers\n    \n- Project Managers\n    \n- Technical Leads\n    \n\n### 1.3 Scope\n\nThe backend system will:\n\n- Support user registration & login\n    \n- Provide role-based access (Admin, Employer, Candidate)\n    \n- Allow employers to post and manage jobs\n    \n- Allow candidates to view and apply to jobs\n    \n- Enable admins to monitor activities\n    \n- Send real-time notifications for job applications\n    \n\n---\n\n## 2\\. Overall Description\n\n### 2.1 Product Perspective\n\nThis system is the backend of a full-stack Job Portal application. It will expose RESTful APIs and use **MongoDB** for storage. Socket.io is used for real-time features. API documentation will be provided via Swagger or Postman.\n\n### 2.2 User Roles\n\n- **Admin**\n    \n- **Employer**\n    \n- **Candidate**\n    \n\n### 2.3 Assumptions and Dependencies\n\n- The system uses **Node.js + TypeScript**\n    \n- Database: **MongoDB**\n    \n- Authentication: **JWT**\n    \n- Real-time Communication: **Socket.io**\n    \n- ORM: **Mongoose**\n    \n- Environment: Dockerized\n    \n\n---\n\n## 3\\. System Features & Requirements\n\n### 3.1 User Authentication\n\n#### Functional Requirements:\n\n- Register and login using email/password\n    \n- Password hashing using **bcrypt**\n    \n- JWT-based authentication\n    \n- Token expiry configured via `.env`\n    \n- Login returns access token\n    \n- Role is assigned at registration\n    \n\n#### Non-functional:\n\n- Secure password storage\n    \n- Invalid credentials return `401 Unauthorized`\n    \n\n---\n\n### 3.2 Role-Based Access Control (RBAC)\n\n| Route | Access |\n| --- | --- |\n| POST `/api/v1/jobs` | Employer only |\n| PATCH `/api/v1/jobs/:id` | Employer (Owner) |\n| POST `/api/v1/job-applications` | Candidate only |\n| GET `/api/v1/jobs` | All(Employer specific) |\n\n---\n\n### 3.3 Job Management (Employers)\n\n#### Functional Requirements:\n\n- Employers can:\n    \n    - Create jobs\n        \n    - Update and delete their own jobs\n        \n    - View job listings\n        \n- Job fields:\n    \n    - `title` (required)\n        \n    - `description` (required)\n        \n    - `companyName` (required)\n        \n    - `location` (required)\n        \n    - `jobType` (required)\n        \n    - `salaryRange` (optional)\n        \n    - `skills` (optional)\n        \n    - `createdBy` (required)\n        \n    - `jobStatus`: `Active` | `Inactive`\n        \n    - Timestamps: `createdAt`, `updatedAt`\n        \n\n---\n\n### 3.4 Job Viewing (Candidates)\n\n#### Functional Requirements:\n\n- View all jobs\n    \n- Optional features:\n    \n    - Pagination\n        \n    - Search by title, location, keyword\n        \n\n---\n\n### 3.5 Job Applications (Candidates)\n\n#### Functional Requirements:\n\n- Apply to jobs\n    \n- Application fields:\n    \n    - `jobId` (required)\n        \n    - `candidateId` (required)\n        \n    - `coverLetter` (optional)\n        \n    - `resume` (optional)\n        \n    - `appliedAt` (auto-generated)\n        \n\n---\n\n### 3.6 Admin Functionalities\n\n#### Functional Requirements:\n\n- View all jobs\n    \n- View all applications\n    \n- (Optional) Ban/unban users (soft delete)\n    \n\n---\n\n### 3.7 Real-time Notification\n\n#### Functional Requirements:\n\n- Notify employer when a candidate applies\n    \n- Use Socket.io\n    \n- Notification includes:\n    \n    - Job title\n        \n    - Candidate name (if available)\n        \n    - Time of application\n        \n\n---\n\n## 4\\. External Interface Requirements\n\n### 4.1 REST API\n\n- JSON-based HTTP APIs\n    \n- Uses standard HTTP response codes\n    \n- Documented via:\n    \n    - Swagger UI or\n        \n    - Postman Collection\n        \n\n### 4.2 Database\n\n- MongoDB\n    \n- Mongoose ODM\n    \n- Collections:\n    \n    - `users`\n        \n    - `jobs`\n        \n    - `applications`\n        \n\n### 4.3 Real-time API\n\n- **Socket.io**\n    \n- Event: `job:applied` → sent to employer room\n    \n\n---\n\n## 5\\. Non-functional Requirements\n\n| Requirement | Description |\n| --- | --- |\n| Security | JWT auth, bcrypt password hashing |\n| Performance | Support for pagination & indexed fields |\n| Scalability | Dockerized; can scale via container orchestration |\n| Reliability | Use of logging (Winston) and error handling |\n| Documentation | Postman-based API docs |\n| Maintainability | Modular folder structure using clean architecture |\n| Portability | Environment-specific config using `.env` |\n| Dev Experience | Hot-reload with `ts-node-dev`, proper linting |\n\n---\n\n## 6\\. Environment Setup\n\n### 6.1 Development\n\n- Node.js ≥ 16\n    \n- MongoDB local\n    \n- Docker + Docker Compose\n    \n- TypeScript\n    \n- Tools: Postman, VSCode\n    \n\n### 6.2 Production\n\n- Dockerized containers\n    \n- Env vars loaded from `.env`\n    \n- MongoDB Atlas or hosted DB\n    \n\n---\n\n## 7\\. Deployment Instructions\n\n1. Clone the repo\n    \n2. Create `.env` file\n    \n3. docker-compose up --build\n    \n4. Access API at: [http://localhost:5000/api/v1](http://localhost:5000/api/v1)\n    \n\n# 📦 Entity Definitions\n\nBelow is a structured set of entities tailored for the **Job Portal Application**, using consistent naming and relational references.\n\n---\n\n## 📌 Role\n\n```\nRole {\n  id: string;            // e.g., \"r_00001\"\n  title: 'admin' | 'employer' | 'candidate';\n}\n\n ```\n\n## 📌 User\n\n```\nUser {\n  id: string;\n  role: string;\n  email: string;\n  password: string;\n  createdAt: Date;\n  updatedAt: Date;\n}\n\n ```\n\n## 📌 Job\n\n```\nJob {\n  id: string;\n  title: string;\n  description: string;\n  companyName: string;\n  location: string;\n  jobType: 'full-time' | 'part-time' | 'contract' | 'internship';\n  salaryRange?: {\n    min: number;\n    max: number;\n  };\n  skills?: string[];\n  createdBy: string;     // FK to User.id\n  jobStatus: 'Active' | 'Inactive';\n  createdAt: Date;\n  updatedAt: Date;\n}\n\n ```\n\n## 📌 JobApplication\n\n```\nJobApplication {\n  id: string;\n  jobId: string;         // FK to Job.id\n  candidateId: string;   // FK to User.id\n  coverLetter?: string;\n  resume?: string;\n  appliedAt: Date;\n}\n\n ```\n\n## 📌 Notification\n\n```\nNotification {\n  id: string;\n  recipientId: string;   // FK to User.id (employer)\n  jobId: string;         // FK to Job.id\n  message: string;\n  read: boolean;\n  createdAt: Date;\n}\n\n ```\n\n# 🔌 API Endpoints – Job Portal Backend System\n\n---\n\n## 🧾 Auth\n\n### 🧑‍💼 Register New User\n\n- **Method:** POST\n    \n- **Access:** Public (Verified)\n    \n- **Description:** Create a new user account\n    \n- **Path:** `/auth/register`\n    \n- **Request Body:**\n    \n    - `name`\n        \n    - `email`\n        \n    - `password`\n        \n    - `roles` array (enum: admin | employer | candidate) — default: candidate\n        \n- **Responses:**\n    \n    - **201**\n        \n        - `statusCode`\n            \n        - `status`\n            \n        - `message`\n            \n        - `data`: { `access_token` }\n            \n    - **400 | 500**\n        \n        - `statusCode`\n            \n        - `status`\n            \n        - `message`\n            \n\n---\n\n### 🔐 Login\n\n- **Method:** POST\n    \n- **Access:** Public\n    \n- **Description:** Login using credentials\n    \n- **Path:** `/auth/login`\n    \n- **Request Body:**\n    \n    - `email`\n        \n    - `password`\n        \n- **Responses:**\n    \n    - **200**\n        \n        - `statusCode`\n            \n        - `status`\n            \n        - `message`\n            \n        - `data`: { `access_token` }\n            \n    - **400 | 404 | 500**\n        \n        - `statusCode`\n            \n        - `status`\n            \n        - `message`\n            \n\n---\n\n## 📄 Job\n\n### ➕ Create Job Post\n\n- **Method:** POST\n    \n- **Access:** Private (employer)\n    \n- **Path:** `/jobs`\n    \n- **Request Body:**\n    \n    - `title\\*`\n        \n    - `description\\*`\n        \n    - `companyName\\*`\n        \n    - `location\\*`\n        \n    - `jobType\\*`\n        \n    - `salaryRange` (min, max)\n        \n    - `skills`\n        \n- **Responses:**\n    \n    - **201**\n        \n    - **400 | 500**\n        \n\n---\n\n### 📥 List All Jobs\n\n- **Method:** GET\n    \n- **Access:** Public\n    \n- **Path:** `/jobs`\n    \n- **Query:**\n    \n    - `page`\n        \n    - `limit`\n        \n    - `search`\n        \n    - `location`\n        \n    - `jobType`\n        \n- **Responses:**\n    \n    - **200**: List of jobs\n        \n    - **404 | 500**\n        \n\n---\n\n### 🔍 Get Single Job\n\n- **Method:** GET\n    \n- **Access:** Public\n    \n- **Path:** `/jobs/{id}`\n    \n- **Responses:**\n    \n    - **200**\n        \n    - **404 | 500**\n        \n\n---\n\n### ✏️ Update Job\n\n- **Method:** PATCH\n    \n- **Access:** Private (employer)\n    \n- **Path:** `/jobs/{id}`\n    \n- **Request Body:**\n    \n    - Any editable job fields\n        \n- **Responses:**\n    \n    - **200 | 400 | 404 | 500**\n        \n\n---\n\n### ❌ Delete Job\n\n- **Method:** DELETE\n    \n- **Access:** Private (employer)\n    \n- **Path:** `/jobs/{id}`\n    \n- **Responses:**\n    \n    - **204 | 404 | 500**\n        \n\n---\n\n## 🧾 Job Application\n\n### 📬 Apply to Job\n\n- **Method:** POST\n    \n- **Access:** Private (candidate)\n    \n- **Path:** `/job-applications`\n    \n- **Request Body:**\n    \n    - `jobId\\*`\n        \n    - `coverLetter`\n        \n    - `resume`\n        \n- **Responses:**\n    \n    - **201**\n        \n    - **400 | 404 | 500**\n        \n\n### 📄 View Job Applications\n\n- **Method:** GET\n    \n- **Access:** Private (admin)\n    \n- **Path:** `/job-applications`\n    \n- **Responses:**\n    \n    - **200 | 404 | 500**\n        \n\n---\n\n## 🔔 Notifications (Socket.io)\n\n> &lt;p &gt;Real-time notifications are pushed via Socket.io to employers when a candidate applies to a job.&lt;/p&gt; \n  \n\n**Event:** **`job:applied`**  \n**Payload:**\n\n```\n{\n\t\"recipientId\": \"_uniqueId\",\n\t\"jobId\": \"_uniqueId\",\n\t\"message\": \"New application for Frontend Developer\"\n}q\n\n ```",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21856226"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Signup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"can2@candidate.com\",\n    \"password\": \"can2\",\n    \"confirmPassword\": \"can2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						},
+						"description": "Gets information about the authenticated user."
+					},
+					"response": [
+						{
+							"name": "Successful Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://api.getpostman.com/me",
+									"protocol": "https",
+									"host": [
+										"api",
+										"getpostman",
+										"com"
+									],
+									"path": [
+										"me"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"name": "Content-Type",
+									"description": {
+										"content": "",
+										"type": "text/plain"
+									}
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"user\": {\n        \"id\": 12345678,\n        \"username\": \"taylor-lee\",\n        \"email\": \"taylor.lee@example.com\",\n        \"fullName\": \"Taylor Lee\",\n        \"avatar\": \"https://example.com/user/r5u9qpvmujfjf6lbqmga.jpg\",\n        \"isPublic\": true\n    },\n    \"operations\": [\n        {\n            \"name\": \"mock_usage\",\n            \"limit\": 1000000,\n            \"usage\": 110276,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"monitor_request_runs\",\n            \"limit\": 10000000,\n            \"usage\": 1141750,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"api_usage\",\n            \"limit\": 1000000,\n            \"usage\": 16240,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"custom_domains\",\n            \"limit\": 25,\n            \"usage\": 25,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"serverless_requests\",\n            \"limit\": 10000,\n            \"usage\": 0,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"integrations\",\n            \"limit\": 5000,\n            \"usage\": 1018,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"cloud_agent_requests\",\n            \"limit\": 1000000,\n            \"usage\": 1615,\n            \"overage\": 0\n        }\n    ]\n}"
+						},
+						{
+							"name": "Rate Limit Exceeded",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://api.getpostman.com/me",
+									"protocol": "https",
+									"host": [
+										"api",
+										"getpostman",
+										"com"
+									],
+									"path": [
+										"me"
+									]
+								}
+							},
+							"status": "Too Many Requests",
+							"code": 429,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": {
+										"content": "",
+										"type": "text/plain"
+									}
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"rateLimited\",\n    \"message\": \"Rate limit exceeded. Please retry after 1669048687\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@admin.com\",\n    \"password\": \"admin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Gets information about the authenticated user."
+					},
+					"response": [
+						{
+							"name": "Successful Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://api.getpostman.com/me",
+									"protocol": "https",
+									"host": [
+										"api",
+										"getpostman",
+										"com"
+									],
+									"path": [
+										"me"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"name": "Content-Type",
+									"description": {
+										"content": "",
+										"type": "text/plain"
+									}
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"user\": {\n        \"id\": 12345678,\n        \"username\": \"taylor-lee\",\n        \"email\": \"taylor.lee@example.com\",\n        \"fullName\": \"Taylor Lee\",\n        \"avatar\": \"https://example.com/user/r5u9qpvmujfjf6lbqmga.jpg\",\n        \"isPublic\": true\n    },\n    \"operations\": [\n        {\n            \"name\": \"mock_usage\",\n            \"limit\": 1000000,\n            \"usage\": 110276,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"monitor_request_runs\",\n            \"limit\": 10000000,\n            \"usage\": 1141750,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"api_usage\",\n            \"limit\": 1000000,\n            \"usage\": 16240,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"custom_domains\",\n            \"limit\": 25,\n            \"usage\": 25,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"serverless_requests\",\n            \"limit\": 10000,\n            \"usage\": 0,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"integrations\",\n            \"limit\": 5000,\n            \"usage\": 1018,\n            \"overage\": 0\n        },\n        {\n            \"name\": \"cloud_agent_requests\",\n            \"limit\": 1000000,\n            \"usage\": 1615,\n            \"overage\": 0\n        }\n    ]\n}"
+						},
+						{
+							"name": "Rate Limit Exceeded",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://api.getpostman.com/me",
+									"protocol": "https",
+									"host": [
+										"api",
+										"getpostman",
+										"com"
+									],
+									"path": [
+										"me"
+									]
+								}
+							},
+							"status": "Too Many Requests",
+							"code": 429,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": {
+										"content": "",
+										"type": "text/plain"
+									}
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"rateLimited\",\n    \"message\": \"Rate limit exceeded. Please retry after 1669048687\"\n}"
+						}
+					]
+				}
+			],
+			"description": "### 🧑‍💼 Register New User\n\n- **Method:** POST\n    \n- **Access:** Public (Verified)\n    \n- **Description:** Create a new user account\n    \n- **Path:** `/auth/register`\n    \n- **Request Body:**\n    \n    - `name`\n        \n    - `email`\n        \n    - `password`\n        \n    - `roles` array (enum: admin | employer | candidate) — default: candidate\n        \n- **Responses:**\n    \n    - **201**\n        \n        - `statusCode`\n            \n        - `status`\n            \n        - `message`\n            \n        - `data`: { `access_token` }\n            \n    - **400 | 500**\n        \n        - `statusCode`\n            \n        - `status`\n            \n        - `message`\n            \n\n---\n\n### 🔐 Login\n\n- **Method:** POST\n    \n- **Access:** Public\n    \n- **Description:** Login using credentials\n    \n- **Path:** `/auth/login`\n    \n- **Request Body:**\n    \n    - `email`\n        \n    - `password`\n        \n- **Responses:**\n    \n    - **200**\n        \n        - `statusCode`\n            \n        - `status`\n            \n        - `message`\n            \n        - `data`: { `access_token` }\n            \n    - **400 | 404 | 500**\n        \n        - `statusCode`\n            \n        - `status`\n            \n        - `message`"
+		},
+		{
+			"name": "Jobs",
+			"item": [
+				{
+					"name": "Create Job Post",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Junior Software Engineer\",\n  \"description\": \"Work on multiple backend and frontend tasks in a collaborative team.\",\n  \"companyName\": \"StartupZone\",\n  \"location\": \"Khulna, Bangladesh\",\n  \"jobType\": \"internship\",\n  \"skills\": [\"JavaScript\", \"Node.js\", \"React\"]\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update job",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \n  \"jobType\": \"internship\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs/68642186f13d04bd88befaeb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"68642186f13d04bd88befaeb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a job",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \n  \"jobType\": \"internship\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs/686421c0f13d04bd88befaf1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"686421c0f13d04bd88befaf1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "View Jobs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/jobs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs"
+							],
+							"query": [
+								{
+									"key": "searchTerm",
+									"value": "node",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "title",
+									"disabled": true
+								},
+								{
+									"key": "sortOrder",
+									"value": "asc",
+									"disabled": true
+								},
+								{
+									"key": "jobType",
+									"value": "full-time",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "View a job",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \n  \"jobType\": \"internship\"\n}\n"
+						},
+						"url": {
+							"raw": "{{base_url}}/jobs/68642186f13d04bd88befaeb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"jobs",
+								"68642186f13d04bd88befaeb"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "### ➕ Create Job Post\n\n- **Method:** POST\n    \n- **Access:** Private (employer)\n    \n- **Path:** `/jobs`\n    \n- **Request Body:**\n    \n    - `title\\*`\n        \n    - `description\\*`\n        \n    - `companyName\\*`\n        \n    - `location\\*`\n        \n    - `jobType\\*`\n        \n    - `salaryRange` (min, max)\n        \n    - `skills`\n        \n- **Responses:**\n    \n    - **201**\n        \n    - **400 | 500**\n        \n\n---\n\n### 📥 List All Jobs\n\n- **Method:** GET\n    \n- **Access:** Public\n    \n- **Path:** `/jobs`\n    \n- **Query:**\n    \n    - `page`\n        \n    - `limit`\n        \n    - `search`\n        \n    - `location`\n        \n    - `jobType`\n        \n- **Responses:**\n    \n    - **200**: List of jobs\n        \n    - **404 | 500**\n        \n\n---\n\n### 🔍 Get Single Job\n\n- **Method:** GET\n    \n- **Access:** Public\n    \n- **Path:** `/jobs/{id}`\n    \n- **Responses:**\n    \n    - **200**\n        \n    - **404 | 500**\n        \n\n---\n\n### ✏️ Update Job\n\n- **Method:** PATCH\n    \n- **Access:** Private (employer)\n    \n- **Path:** `/jobs/{id}`\n    \n- **Request Body:**\n    \n    - Any editable job fields\n        \n- **Responses:**\n    \n    - **200 | 400 | 404 | 500**\n        \n\n---\n\n### ❌ Delete Job\n\n- **Method:** DELETE\n    \n- **Access:** Private (employer)\n    \n- **Path:** `/jobs/{id}`\n    \n- **Responses:**\n    \n    - **204 | 404 | 500**"
+		},
+		{
+			"name": "Job applications",
+			"item": [
+				{
+					"name": "Apply to a job",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "resume",
+									"type": "file",
+									"src": "/var/home/dev_sadman/Downloads/Fake-Resume.pdf"
+								},
+								{
+									"key": "coverLetter",
+									"value": "test cover letter can2",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/job-applications/68653c639f63306522b024b3",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"job-applications",
+								"68653c639f63306522b024b3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "View job applications",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Content Strategist\",\n  \"description\": \"Create and manage digital content strategies for brand awareness.\",\n  \"companyName\": \"ContentVerse\",\n  \"location\": \"Barishal, Bangladesh\",\n  \"jobType\": \"part-time\",\n  \"skills\": [\"SEO\", \"Copywriting\", \"Content Marketing\", \"Google Analytics\"]\n}\n"
+						},
+						"url": {
+							"raw": "{{base_url}}/job-applications?searchTerm=react",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"job-applications"
+							],
+							"query": [
+								{
+									"key": "searchTerm",
+									"value": "react"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "### 📬 Apply to Job\n\n- **Method:** POST\n    \n- **Access:** Private (candidate)\n    \n- **Path:** `/job-applications`\n    \n- **Request Body:**\n    \n    - `jobId\\*`\n        \n    - `coverLetter`\n        \n    - `resume`\n        \n- **Responses:**\n    \n    - **201**\n        \n    - **400 | 404 | 500**\n        \n\n### 📄 View Job Applications\n\n- **Method:** GET\n    \n- **Access:** Private (admin)\n    \n- **Path:** `/job-applications`\n    \n- **Responses:**\n    \n    - **200 | 404 | 500**\n        \n\n---\n\n## 🔔 Notifications (Socket.io)\n\n> &lt;p &gt;Real-time notifications are pushed via Socket.io to employers when a candidate applies to a job.&lt;/p&gt; \n  \n\n**Event:** **`job:applied`**  \n**Payload:**\n\n```\n{\n\t\"recipientId\": \"_uniqueId\",\n\t\"jobId\": \"_uniqueId\",\n\t\"message\": \"New application for Frontend Developer\"\n}\n\n ```"
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "key",
+				"value": "X-API-Key",
+				"type": "string"
+			},
+			{
+				"key": "value",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://farming-simulator.pstmn.io"
+		}
+	]
+}

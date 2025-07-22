@@ -86,10 +86,41 @@ const changePasswordValidation = z.object({
 	}),
 });
 
+/*
+Schema validation -> verify 2fa
+ */
+const verify2faZodValidation = z.object({
+	body: z.object({
+		email: z
+			.string({
+				required_error: "Email is required",
+			})
+			.email({
+				message: "Please enter a valid email address",
+			}),
+		token: z.string({
+			required_error: "Token is required",
+		}),
+	}),
+});
+
+/*
+Schema validation -> verify 2fa
+ */
+const validate2faZodValidation = z.object({
+	body: z.object({
+		token: z.string({
+			required_error: "Token is required",
+		}),
+	}),
+});
+
 export const AuthValidation = {
 	loginZodValidation,
 	refreshTokenZodValidation,
 	changePasswordValidation,
 	signupZodValidation,
 	forgetPasswordValidation,
+	verify2faZodValidation,
+	validate2faZodValidation,
 };
